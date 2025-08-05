@@ -1,57 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YouTube Multi-Channel Tracker</title>
-<style>
-  body { background: black; color: white; font-family: Arial, sans-serif; text-align: center; }
-  h1 { color: red; }
-  .channel-section { margin: 30px auto; width: 90%; max-width: 800px; }
-  .video-card { background: #1e1e1e; margin: 10px; padding: 10px; border-radius: 10px; }
-  .video-card img { width: 100%; border-radius: 10px; }
-  .video-title { margin: 10px 0; color: yellow; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Channel Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 {
+      color: red;
+      margin: 20px 0;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      border: 2px solid #fff;
+    }
+    .logo:hover {
+      transform: scale(1.1);
+    }
+    .video-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .video {
+      background: #111;
+      border-radius: 10px;
+      overflow: hidden;
+      padding: 10px;
+      transition: transform 0.2s ease;
+    }
+    .video:hover {
+      transform: scale(1.05);
+    }
+    .video img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .video-title {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ffcc00;
+    }
+  </style>
 </head>
 <body>
 
-<h1>📺 YouTube Multi-Channel Tracker</h1>
-<div id="channels"></div>
+<h1>📺 YouTube Channel Tracker</h1>
+
+<!-- Channel Logos -->
+<div class="logo-container">
+  <img src="https://yt3.googleusercontent.com/ytc/AL5GRJU4gAnmkWcLdB7nCK9kZYo1IyxKqO_A1E2lwTCy=s176-c-k-c0x00ffffff-no-rj" 
+       alt="Techno Gamerz" class="logo" onclick="loadVideos('UCX6OQ3DkcsbYNE6H8uQQuVA')">
+  <img src="https://yt3.googleusercontent.com/ytc/AL5GRJWf-HQF7U3qvH2y_TzzmL3Jm6dJSvToFpzvE1m3=s176-c-k-c0x00ffffff-no-rj" 
+       alt="Mr Indian Hacker" class="logo" onclick="loadVideos('UCMoN7dvNhKUwZjvkhTdg9NQ')">
+</div>
+
+<!-- Videos Section -->
+<div id="videos" class="video-list"></div>
 
 <script>
-const API_KEY = "AIzaSyAvZCByiu17bG3IF48dsgww03x7fZolLlk";
-const channels = [
-  { name: "Techno Gamerz", id: "UCX6OQ3DkcsbYNE6H8uQQuVA" },
-  { name: "Mr Indian Hacker", id: "UChYheBnVeCfhCnm_Sz2h9pA" },
-  { name: "Anshu Bisht", id: "UCfwtVJxvJv0X7o5Z1VZkZgA" }
-];
+  const API_KEY = "YOUR_YOUTUBE_API_KEY"; // <-- Apna API Key yaha daalo
 
-async function fetchVideos(channel) {
-  try {
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channel.id}&part=snippet,id&order=date&maxResults=4`);
-    const data = await res.json();
-    
-    let section = `<div class="channel-section"><h2>${channel.name} Latest Videos</h2>`;
-    data.items.forEach(video => {
-      if(video.id.kind === "youtube#video"){
-        section += `
-          <div class="video-card">
+  async function loadVideos(channelId) {
+    document.getElementById("videos").innerHTML = "<p>Loading videos...</p>";
+
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=10`
+      );
+      const data = await response.json();
+
+      if (data.items) {
+        document.getElementById("videos").innerHTML = data.items.map(video => `
+          <div class="video">
             <a href="https://www.youtube.com/watch?v=${video.id.videoId}" target="_blank">
-              <img src="${video.snippet.thumbnails.medium.url}" alt="${video.snippet.title}">
+              <img src="${video.snippet.thumbnails.high.url}" alt="${video.snippet.title}">
             </a>
             <div class="video-title">${video.snippet.title}</div>
           </div>
-        `;
+        `).join('');
+      } else {
+        document.getElementById("videos").innerHTML = "<p>No videos found.</p>";
       }
-    });
-    section += `</div>`;
-    document.getElementById("channels").innerHTML += section;
-  } catch (e) {
-    document.getElementById("channels").innerHTML += `<p>⚠ ${channel.name} ke videos fetch nahi ho paye</p>`;
+    } catch (error) {
+      document.getElementById("videos").innerHTML = "<p>Error fetching videos.</p>";
+    }
   }
-}
-
-channels.forEach(fetchVideos);
 </script>
 
 </body>
