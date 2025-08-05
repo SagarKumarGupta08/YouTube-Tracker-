@@ -1,86 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Channel Tracker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #000;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 {
-            color: red;
-        }
-        .video-card {
-            background: #1a1a1a;
-            margin: 10px;
-            padding: 10px;
-            border-radius: 10px;
-        }
-        a {
-            color: yellow;
-            text-decoration: none;
-        }
-        .error {
-            color: orange;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Multi-Channel Tracker</title>
+<style>
+  body { background: black; color: white; font-family: Arial, sans-serif; text-align: center; }
+  h1 { color: red; }
+  .channel-section { margin: 30px auto; width: 90%; max-width: 800px; }
+  .video-card { background: #1e1e1e; margin: 10px; padding: 10px; border-radius: 10px; }
+  .video-card img { width: 100%; border-radius: 10px; }
+  .video-title { margin: 10px 0; color: yellow; }
+</style>
 </head>
 <body>
-    <h1>📺 YouTube Channel Tracker</h1>
 
-    <div id="technoGamerz">
-        <h2>Techno Gamerz Latest Videos</h2>
-        <div id="technoVideos">Loading...</div>
-    </div>
+<h1>📺 YouTube Multi-Channel Tracker</h1>
+<div id="channels"></div>
 
-    <div id="mrIndianHacker">
-        <h2>Mr Indian Hacker Latest Videos</h2>
-        <div id="hackerVideos">Loading...</div>
-    </div>
+<script>
+const API_KEY = "AIzaSyAvZCByiu17bG3IF48dsgww03x7fZolLlk";
+const channels = [
+  { name: "Techno Gamerz", id: "UCX6OQ3DkcsbYNE6H8uQQuVA" },
+  { name: "Mr Indian Hacker", id: "UChYheBnVeCfhCnm_Sz2h9pA" },
+  { name: "Anshu Bisht", id: "UCfwtVJxvJv0X7o5Z1VZkZgA" }
+];
 
-    <script>
-        const API_KEY = "AIzaSyAvZCByiu17bG3IF48dsgww03x7fZolLlk"; // 👈 Apni API Key yaha daalo
-        const channels = {
-            techno: "UCX6OQ3DkcsbYNE6H8uQQuVA",
-            hacker: "UC1ekb14g2HEajrtL5L3GZ_w"
-        };
+async function fetchVideos(channel) {
+  try {
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channel.id}&part=snippet,id&order=date&maxResults=4`);
+    const data = await res.json();
+    
+    let section = `<div class="channel-section"><h2>${channel.name} Latest Videos</h2>`;
+    data.items.forEach(video => {
+      if(video.id.kind === "youtube#video"){
+        section += `
+          <div class="video-card">
+            <a href="https://www.youtube.com/watch?v=${video.id.videoId}" target="_blank">
+              <img src="${video.snippet.thumbnails.medium.url}" alt="${video.snippet.title}">
+            </a>
+            <div class="video-title">${video.snippet.title}</div>
+          </div>
+        `;
+      }
+    });
+    section += `</div>`;
+    document.getElementById("channels").innerHTML += section;
+  } catch (e) {
+    document.getElementById("channels").innerHTML += `<p>⚠ ${channel.name} ke videos fetch nahi ho paye</p>`;
+  }
+}
 
-        async function fetchVideos(channelId, containerId) {
-            try {
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=5`);
-                const data = await res.json();
+channels.forEach(fetchVideos);
+</script>
 
-                const container = document.getElementById(containerId);
-                container.innerHTML = "";
-
-                if (data.items) {
-                    data.items.forEach(video => {
-                        if (video.id.kind === "youtube#video") {
-                            container.innerHTML += `
-                                <div class="video-card">
-                                    <a href="https://www.youtube.com/watch?v=${video.id.videoId}" target="_blank">
-                                        <img src="${video.snippet.thumbnails.medium.url}" alt="${video.snippet.title}">
-                                        <p>${video.snippet.title}</p>
-                                    </a>
-                                </div>
-                            `;
-                        }
-                    });
-                } else {
-                    container.innerHTML = `<p class="error">⚠ Videos fetch nahi ho paye</p>`;
-                }
-            } catch (error) {
-                document.getElementById(containerId).innerHTML = `<p class="error">⚠ Error fetching videos</p>`;
-            }
-        }
-
-        fetchVideos(channels.techno, "technoVideos");
-        fetchVideos(channels.hacker, "hackerVideos");
-    </script>
 </body>
 </html>
