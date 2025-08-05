@@ -3,130 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YouTube Tracker</title>
+<title>YouTube Tracker (Unlimited)</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #000;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-  }
-  h1 {
-    text-align: center;
-    color: red;
-    margin: 20px 0;
-  }
-  .channel {
-    margin: 20px;
-    padding: 10px;
-    background: #111;
-    border-radius: 10px;
-  }
-  .channel-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .videos {
-    display: flex;
-    overflow-x: auto;
-    gap: 10px;
-    padding-top: 10px;
-  }
-  .video {
-    min-width: 200px;
-    background: #222;
-    border-radius: 8px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .video img {
-    width: 100%;
-    border-radius: 8px;
-  }
-  .video-title {
-    font-size: 12px;
-    color: #ffcc00;
-    padding: 5px;
-  }
+  body { background:#000; color:#fff; font-family:Arial; margin:0; padding:0; }
+  h1 { text-align:center; color:red; margin:20px 0; }
+  .channel { margin:20px; padding:10px; background:#111; border-radius:10px; }
+  .channel-header { display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .channel-logo { width:40px; height:40px; border-radius:50%; }
+  .videos { display:flex; overflow-x:auto; gap:10px; padding-top:10px; }
+  .video { min-width:200px; background:#222; border-radius:8px; text-align:center; flex-shrink:0; }
+  .video img { width:100%; border-radius:8px; }
+  .video-title { font-size:12px; color:#ffcc00; padding:5px; }
 </style>
 </head>
 <body>
 
-<h1>📺 YouTube Tracker</h1>
-
-<!-- Channel Section -->
-<div class="channel">
-  <div class="channel-header">
-    <input type="radio" name="channel" onclick="loadVideos('UCX8pnu3DYUnx8qy8V_c6oHg', 'videos1')">
-    <label>Techno Gamerz</label>
-  </div>
-  <div id="videos1" class="videos"></div>
-</div>
-  
-  <div class="channel">
-  <div class="channel-header">
-    <input type="radio" name="channel" onclick="loadVideos('UCPjaNv8GlIamrxCbqincG_g', 'videos2')">
-    <label>Anshu Bist</label>
-  </div>
-  <div id="videos2" class="videos"></div>
-  </div>
-
-  <div class="channel">
-  <div class="channel-header">
-    <input type="radio" name="channel" onclick="loadVideos('UCHciekxM6H6F3OTPrHs6B5g', 'videos2')">
-    <label>Notgamerfleet</label>
-  </div>
-  <div id="videos2" class="videos"></div>
-</div>
-
-  
-<div class="channel">
-  <div class="channel-header">
-    <input type="radio" name="channel" onclick="loadVideos('UCebC4x5l2-PQxg46Ucv9CsA', 'videos2')">
-    <label>Crazy xyz</label>
-  </div>
-  <div id="videos2" class="videos"></div>
-</div>
-  
-
-<div class="channel">
-  <div class="channel-header">
-    <input type="radio" name="channel" onclick="loadVideos('UCSiDGb0MnHFGjs4E2WKvShw', 'videos2')">
-    <label>Mr Indian Hacker</label>
-  </div>
-  <div id="videos2" class="videos"></div>
-</div>
+<h1>📺 YouTube Tracker (Unlimited)</h1>
+<div id="channels"></div>
 
 <script>
-  const API_KEY = "AIzaSyAvZCByiu17bG3IF48dsgww03x7fZolLlk"; // <-- Yaha apna API ky daalna
+// Channels (Unlimited add kar sakte ho)
+const channels = [
+  { name: "Techno Gamerz", id: "UCi-1Jr6YYP7nYVgVQVKov1g", logo: "https://yt3.ggpht.com/ytc/AKedOLTnRGRzC5LK8bFfAw=s88-c-k-c0x00ffffff-no-rj" },
+  { name: "Mr Indian Hacker", id: "UCt4atlExw8aj3Bm79nv1fig", logo: "https://yt3.ggpht.com/ytc/AKedOLQbGsmUlTtMse3Q=s88-c-k-c0x00ffffff-no-rj" }
+];
 
-  async function loadVideos(channelId, containerId) {
-    document.getElementById(containerId).innerHTML = "<p>Loading...</p>";
+// Channel section create
+const container = document.getElementById("channels");
+channels.forEach((ch, index) => {
+  container.innerHTML += `
+    <div class="channel">
+      <div class="channel-header" onclick="loadVideos('${ch.id}', 'videos${index}')">
+        <img class="channel-logo" src="${ch.logo}" alt="${ch.name}">
+        <h3>${ch.name}</h3>
+      </div>
+      <div id="videos${index}" class="videos"></div>
+    </div>
+  `;
+});
 
-    try {
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=10`
-      );
-      const data = await res.json();
+// RSS fetch function
+async function loadVideos(channelId, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "<p>Loading...</p>";
 
-      if (data.items) {
-        document.getElementById(containerId).innerHTML = data.items.map(video => `
-          <div class="video">
-            <a href="https://www.youtube.com/watch?v=${video.id.videoId}" target="_blank">
-              <img src="${video.snippet.thumbnails.medium.url}" alt="${video.snippet.title}">
-            </a>
-            <div class="video-title">${video.snippet.title}</div>
-          </div>
-        `).join('');
-      } else {
-        document.getElementById(containerId).innerHTML = "<p>No videos found.</p>";
-      }
-    } catch {
-      document.getElementById(containerId).innerHTML = "<p>Error fetching videos.</p>";
+  try {
+    const rssUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    const res = await fetch(rssUrl);
+    const data = await res.json();
+
+    if (data.items && data.items.length > 0) {
+      container.innerHTML = data.items.slice(0, 10).map(video => `
+        <div class="video">
+          <a href="${video.link}" target="_blank">
+            <img src="${video.thumbnail}" alt="${video.title}">
+          </a>
+          <div class="video-title">${video.title}</div>
+        </div>
+      `).join('');
+    } else {
+      container.innerHTML = "<p>No videos found.</p>";
     }
+  } catch (error) {
+    container.innerHTML = "<p>Error fetching videos.</p>";
+    console.error(error);
   }
+}
 </script>
 
 </body>
