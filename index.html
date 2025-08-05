@@ -1,104 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YouTube Channel Tracker</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #121212;
-        color: white;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-    }
-    h1 {
-        margin: 20px;
-        color: #ff4d4d;
-    }
-    .container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        padding: 10px;
-    }
-    .card {
-        background: #1f1f1f;
-        margin: 10px;
-        border-radius: 10px;
-        overflow: hidden;
-        width: 300px;
-        box-shadow: 0px 0px 10px rgba(255,255,255,0.2);
-        transition: 0.3s;
-    }
-    .card:hover {
-        transform: scale(1.05);
-    }
-    .card img {
-        width: 100%;
-    }
-    .card h3 {
-        margin: 10px;
-        font-size: 16px;
-        color: #ffcccc;
-    }
-    .card a {
-        text-decoration: none;
-        color: #00acee;
-        display: block;
-        margin-bottom: 10px;
-        font-weight: bold;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Channel Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: red;
+        }
+        .video-card {
+            background: #1a1a1a;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        a {
+            color: yellow;
+            text-decoration: none;
+        }
+        .error {
+            color: orange;
+        }
+    </style>
 </head>
 <body>
+    <h1>📺 YouTube Channel Tracker</h1>
 
-<h1>📺 YouTube Channel Tracker</h1>
-<div class="container" id="videoContainer">Loading...</div>
+    <div id="technoGamerz">
+        <h2>Techno Gamerz Latest Videos</h2>
+        <div id="technoVideos">Loading...</div>
+    </div>
 
-<script>
-const API_KEY = "AIzaSyAvZCByiu17bG3IF48dsgww03x7fZolLlk";
-const CHANNELS = [
-    { name: "Techno Gamerz", id: "UCX4XjJbbOzw7QJwEJJyKNXg" },
-    { name: "Mr Indian Hacker", id: "UCMhZB0n0q8zvZ4N7cZxhbHg" }
-];
+    <div id="mrIndianHacker">
+        <h2>Mr Indian Hacker Latest Videos</h2>
+        <div id="hackerVideos">Loading...</div>
+    </div>
 
-async function fetchLatestVideo(channelId) {
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&order=date&part=snippet&type=video&maxResults=1`);
-    const data = await res.json();
-    return data.items ? data.items[0] : null;
-}
+    <script>
+        const API_KEY = "AIzaSyAvZCByiu17bG3IF48dsgww03x7fZolLlk"; // 👈 Apni API Key yaha daalo
+        const channels = {
+            techno: "UCX6OQ3DkcsbYNE6H8uQQuVA",
+            hacker: "UC1ekb14g2HEajrtL5L3GZ_w"
+        };
 
-async function displayVideos() {
-    const container = document.getElementById("videoContainer");
-    container.innerHTML = "";
-    for (let channel of CHANNELS) {
-        try {
-            const video = await fetchLatestVideo(channel.id);
-            if (video) {
-                const videoId = video.id.videoId;
-                const title = video.snippet.title;
-                const thumbnail = video.snippet.thumbnails.medium.url;
+        async function fetchVideos(channelId, containerId) {
+            try {
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=5`);
+                const data = await res.json();
 
-                container.innerHTML += `
-                    <div class="card">
-                        <img src="${thumbnail}" alt="${title}">
-                        <h3>${channel.name}: ${title}</h3>
-                        <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">▶ Watch Now</a>
-                    </div>
-                `;
-            } else {
-                container.innerHTML += `<p>⚠️ ${channel.name} ke video fetch nahi ho paye</p>`;
+                const container = document.getElementById(containerId);
+                container.innerHTML = "";
+
+                if (data.items) {
+                    data.items.forEach(video => {
+                        if (video.id.kind === "youtube#video") {
+                            container.innerHTML += `
+                                <div class="video-card">
+                                    <a href="https://www.youtube.com/watch?v=${video.id.videoId}" target="_blank">
+                                        <img src="${video.snippet.thumbnails.medium.url}" alt="${video.snippet.title}">
+                                        <p>${video.snippet.title}</p>
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    container.innerHTML = `<p class="error">⚠ Videos fetch nahi ho paye</p>`;
+                }
+            } catch (error) {
+                document.getElementById(containerId).innerHTML = `<p class="error">⚠ Error fetching videos</p>`;
             }
-        } catch (error) {
-            container.innerHTML += `<p>⚠️ ${channel.name} load karne me error</p>`;
         }
-    }
-}
 
-displayVideos();
-</script>
-
+        fetchVideos(channels.techno, "technoVideos");
+        fetchVideos(channels.hacker, "hackerVideos");
+    </script>
 </body>
 </html>
