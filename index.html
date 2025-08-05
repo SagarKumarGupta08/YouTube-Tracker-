@@ -22,13 +22,12 @@
 <div id="channels"></div>
 
 <script>
-// Channels (Unlimited add kar sakte ho)
+// ✅ Correct channel IDs
 const channels = [
-  { name: "Techno Gamerz", id: "UCi-1Jr6YYP7nYVgVQVKov1g", logo: "https://yt3.ggpht.com/ytc/AKedOLTnRGRzC5LK8bFfAw=s88-c-k-c0x00ffffff-no-rj" },
-  { name: "Mr Indian Hacker", id: "UCt4atlExw8aj3Bm79nv1fig", logo: "https://yt3.ggpht.com/ytc/AKedOLQbGsmUlTtMse3Q=s88-c-k-c0x00ffffff-no-rj" }
+  { name: "Techno Gamerz", id: "UCX6OQ3DkcsbYNE6H8uQQuVA", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJUMWJz=s88-c-k-c0x00ffffff-no-rj" },
+  { name: "Mr Indian Hacker", id: "UCMoN7dvNhKUwZjvkhTdg9NQ", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJUbR9W=s88-c-k-c0x00ffffff-no-rj" }
 ];
 
-// Channel section create
 const container = document.getElementById("channels");
 channels.forEach((ch, index) => {
   container.innerHTML += `
@@ -42,25 +41,34 @@ channels.forEach((ch, index) => {
   `;
 });
 
-// RSS fetch function
 async function loadVideos(channelId, containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = "<p>Loading...</p>";
 
   try {
-    const rssUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-    const res = await fetch(rssUrl);
+    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`);
     const data = await res.json();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(data.contents, "application/xml");
+    const entries = xml.getElementsByTagName("entry");
 
-    if (data.items && data.items.length > 0) {
-      container.innerHTML = data.items.slice(0, 10).map(video => `
-        <div class="video">
-          <a href="${video.link}" target="_blank">
-            <img src="${video.thumbnail}" alt="${video.title}">
-          </a>
-          <div class="video-title">${video.title}</div>
-        </div>
-      `).join('');
+    if (entries.length > 0) {
+      container.innerHTML = "";
+      for (let i = 0; i < Math.min(10, entries.length); i++) {
+        const title = entries[i].getElementsByTagName("title")[0].textContent;
+        const link = entries[i].getElementsByTagName("link")[0].getAttribute("href");
+        const thumbnail = entries[i].getElementsByTagName("media:thumbnail")[0].getAttribute("url");
+
+        container.innerHTML += `
+          <div class="video">
+            <a href="${link}" target="_blank">
+              <img src="${thumbnail}" alt="${title}">
+            </a>
+            <div class="video-title">${title}</div>
+          </div>
+        `;
+      }
     } else {
       container.innerHTML = "<p>No videos found.</p>";
     }
