@@ -7,6 +7,11 @@
 <style>
   body { background:#000; color:#fff; font-family:Arial; margin:0; padding:0; }
   h1 { text-align:center; color:red; margin:20px 0; }
+  .filter-btn {
+    display:block; margin:10px auto; padding:10px 20px;
+    background:red; color:white; border:none; border-radius:5px;
+    cursor:pointer; font-size:16px;
+  }
   .channel { margin:20px; padding:10px; background:#111; border-radius:10px; }
   .channel-header { display:flex; align-items:center; gap:10px; cursor:pointer; }
   .channel-logo { width:40px; height:40px; border-radius:50%; }
@@ -19,22 +24,21 @@
 <body>
 
 <h1>📺 YouTube Tracker (Unlimited)</h1>
+<button class="filter-btn" onclick="toggleFilter()">Show Last 48 Hours</button>
 <div id="channels"></div>
 
 <script>
-// ✅ Correct Channel IDs & Logos
+let filter48 = false; // Filter toggle
+
 const channels = [
   { name: "Techno Gamerz", id: "UCX8pnu3DYUnx8qy8V_c6oHg", logo: "https://yt3.ggpht.com/ytc/AL5GRJXxHh=s88-c-k-c0x00ffffff-no-rj" },
   { name: "Tech Shot", id: "UCs6EmLAT4lTWwCSJRgbbchQ", logo: "https://yt3.ggpht.com/ytc/AL5GRJUmIF=s88-c-k-c0x00ffffff-no-rj" },  
   { name: "Techno", id: "UCihCQz9gjV2r0d7p_8BPHTA", logo: "https://yt3.ggpht.com/ytc/AL5GRJUzuv=s88-c-k-c0x00ffffff-no-rj" },
   { name: "Ashu Bist", id: "UCPjaNv8GlIamrxCbqincG_g", logo: "https://yt3.ggpht.com/ytc/AL5GRJUuWM=s88-c-k-c0x00ffffff-no-rj" },
   { name: "Notgamerfleet", id: "UCHciekxM6H6F3OTPrHs6B5g", logo: "https://yt3.ggpht.com/ytc/AL5GRJUuWM=s88-c-k-c0x00ffffff-no-rj" },
-  { name: "", id: "UCDK1-_n2Tnrl9iXdHkmKNeQ", logo: "https://yt3.ggpht.com/ytc/AL5GRJUuWM=s88-c-k-c0x00ffffff-no-rj" },
   { name: "Mr Indian Hacker", id: "UCSiDGb0MnHFGjs4E2WKvShw", logo: "https://yt3.ggpht.com/ytc/AL5GRJUzuv=s88-c-k-c0x00ffffff-no-rj" }
-
 ];
 
-// Add channels dynamically
 const container = document.getElementById("channels");
 channels.forEach((ch, index) => {
   container.innerHTML += `
@@ -48,7 +52,13 @@ channels.forEach((ch, index) => {
   `;
 });
 
-// Load videos via RSS feed (Unlimited refresh)
+function toggleFilter(){
+  filter48 = !filter48;
+  document.querySelector(".filter-btn").textContent = filter48 ? "Show All Videos" : "Show Last 48 Hours";
+  // Reload all videos
+  channels.forEach((ch, i)=> loadVideos(ch.id, `videos${i}`));
+}
+
 async function loadVideos(channelId, containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = "<p>Loading...</p>";
@@ -63,25 +73,30 @@ async function loadVideos(channelId, containerId) {
     const xml = parser.parseFromString(data.contents, "application/xml");
     const entries = xml.getElementsByTagName("entry");
 
-    if (entries.length > 0) {
-      container.innerHTML = "";
-      for (let i = 0; i < Math.min(10, entries.length); i++) {
-        const title = entries[i].getElementsByTagName("title")[0].textContent;
-        const link = entries[i].getElementsByTagName("link")[0].getAttribute("href");
-        const thumbnail = entries[i].getElementsByTagName("media:thumbnail")[0].getAttribute("url");
+    container.innerHTML = "";
+    let now = new Date();
 
-        container.innerHTML += `
-          <div class="video">
-            <a href="${link}" target="_blank">
-              <img src="${thumbnail}" alt="${title}">
-            </a>
-            <div class="video-title">${title}</div>
-          </div>
-        `;
-      }
-    } else {
-      container.innerHTML = "<p>No videos found.</p>";
+    for (let i = 0; i < Math.min(10, entries.length); i++) {
+      const title = entries[i].getElementsByTagName("title")[0].textContent;
+      const link = entries[i].getElementsByTagName("link")[0].getAttribute("href");
+      const thumbnail = entries[i].getElementsByTagName("media:thumbnail")[0].getAttribute("url");
+      const published = new Date(entries[i].getElementsByTagName("published")[0].textContent);
+
+      const diffHrs = (now - published) / (1000 * 60 * 60);
+
+      if (filter48 && diffHrs > 48) continue; // Skip old videos if filter on
+
+      container.innerHTML += `
+        <div class="video">
+          <a href="${link}" target="_blank">
+            <img src="${thumbnail}" alt="${title}">
+          </a>
+          <div class="video-title">${title}</div>
+        </div>
+      `;
     }
+    if (container.innerHTML.trim() === "") container.innerHTML = "<p>No recent videos.</p>";
+
   } catch (error) {
     container.innerHTML = "<p>Error fetching videos.</p>";
     console.error(error);
