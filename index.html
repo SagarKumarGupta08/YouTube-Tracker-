@@ -18,16 +18,19 @@
 </head>
 <body>
 
-<h1>📺 YoubbTube Tracker (Unlimited)</h1>
+<h1>📺 YouTube Tracker (Unlimited)</h1>
 <div id="channels"></div>
 
 <script>
-// ✅ Correct channel IDs
+// ✅ Correct Channel IDs & Logos
 const channels = [
-  { name: "Techno bnkkGamerz", id: "UCX6OQ3DkcsbYNE6H8uQQuVA", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJUMWJz=s88-c-k-c0x00ffffff-no-rj" },
-  { name: "Mr Indian Hacker", id: "UCMoN7dvNhKUwZjvkhTdg9NQ", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJUbR9W=s88-c-k-c0x00ffffff-no-rj" }
+  { name: "Techno Gamerz", id: "UCX6OQ3DkcsbYNE6H8uQQuVA", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJUMWJz=s88-c-k-c0x00ffffff-no-rj" },
+  { name: "Mr Indian Hacker", id: "UCMoN7dvNhKUwZjvkhTdg9NQ", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJUbR9W=s88-c-k-c0x00ffffff-no-rj" },
+  { name: "Crazy XYZ", id: "UCV8S3u6azvE_Q_djVz0UzoA", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJXy6i4=s88-c-k-c0x00ffffff-no-rj" },
+  { name: "Mythpat", id: "UCmXjpWZiFb4_FXe7jnM4W6g", logo: "https://yt3.googleusercontent.com/ytc/AL5GRJUu8K8=s88-c-k-c0x00ffffff-no-rj" }
 ];
 
+// Add channels dynamically
 const container = document.getElementById("channels");
 channels.forEach((ch, index) => {
   container.innerHTML += `
@@ -41,14 +44,17 @@ channels.forEach((ch, index) => {
   `;
 });
 
+// Load videos via RSS feed (Unlimited refresh)
 async function loadVideos(channelId, containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = "<p>Loading...</p>";
 
   try {
     const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`);
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+    const res = await fetch(proxyUrl);
     const data = await res.json();
+
     const parser = new DOMParser();
     const xml = parser.parseFromString(data.contents, "application/xml");
     const entries = xml.getElementsByTagName("entry");
